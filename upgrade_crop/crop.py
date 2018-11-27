@@ -8,8 +8,9 @@ import cv2
 
 pipeline = rs.pipeline()
 
-#Create a config and configure the pipeline to stream
-#  different resolutions of color and depth streams
+
+points = rs.points()
+
 config = rs.config()
 config.enable_stream(rs.stream.depth, 640, 360, rs.format.z16, 30)
 config.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, 30)
@@ -34,23 +35,23 @@ align_to = rs.stream.color
 align = rs.align(align_to)
 
 def crop_center_color(img,cropx,cropy):
-    y,x,c = img.shape
+    x,y,c = img.shape
     print(x)
     print(y)
     startx = x//2 - cropx//2
     starty = y//2 - cropy//2
-    return img[starty:starty+cropy, startx:startx+cropx, :]
+    return img[startx:startx+cropx, starty:starty+cropy,  :]
 
 def crop_center_depth(img,cropx,cropy):
-    y,x = img.shape
+    x,y = img.shape
     startx = x//2 - cropx//2
     starty = y//2 - cropy//2
-    return img[starty:starty+cropy, startx:startx+cropx]
+    return img[startx:startx+cropx, starty:starty+cropy]
 
 index = 0
 try:
 
-    while index < 1:  #added this
+    while 1:  #added this
         time.sleep(1)
         # Wait for the next set of frames from the camera
         frames = pipeline.wait_for_frames()
@@ -68,9 +69,9 @@ try:
 
         print(depth_image.shape)
 
-        depth_image = crop_center_depth(depth_image, 300, 400); #이부분을 viewr로 설정해서 조절하면 됩니다.
+        depth_image = crop_center_depth(depth_image, 300, 200);
 
-        color_image = crop_center_color(color_image, 300, 400);
+        color_image = crop_center_color(color_image, 300, 200);
 
         print(color_image.shape)
 
@@ -84,8 +85,11 @@ try:
         depth_colormap = cv2.applyColorMap(cv2.convertScaleAbs(depth_image, alpha=0.03), cv2.COLORMAP_JET)
         images = np.hstack((bg_removed, depth_colormap))
         print(type(images))
+        print(images)
         cv2.namedWindow('Align Example', cv2.WINDOW_AUTOSIZE)
         cv2.imshow('Align Example', images)
+        cv2.imwrite("0.png", images)
+
         key = cv2.waitKey(1)
         # Press esc or 'q' to close the image window
         if key & 0xFF == ord('q') or key == 27:
